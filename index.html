@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta http-equiv="pragma" content="no-cache" />
+<!-- release 061213-->
+<!-- (c) Copyright 2011-2012, ARRIS Group, Inc., All rights reserved. -->
+<link rel="stylesheet" type="text/css" media="all" href="css/global.css"/>
+
+<!--[if IE 6]>
+<link rel="stylesheet" type="text/css" href="css/ie6styles.css"/>
+<![endif]-->
+<!--[if IE 7]>
+<link rel="stylesheet" type="text/css" href="css/ie7styles.css"/>
+<![endif]-->
+
+<link type="text/css" href="css/ui-lightness/jquery-ui-1.12.1.custom.css" rel="stylesheet"/>
+<script type="text/javascript" src="scripts/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="scripts/jquery-migrate-1.0.0.min.js"></script>
+<script type="text/javascript" src="scripts/jquery-ui-1.12.1.custom.min.js"></script>
+<script type="text/javascript" src="scripts/jquery.md5.js"></script>
+<script type="text/javascript" src="scripts/jquery.ui.touch-punch.min.js"></script>
+
+<script type="text/javascript" src="scripts/json2.js"></script>
+<script type="text/javascript" src="scripts/underscore.js"></script>
+<script type="text/javascript" src="scripts/elessar.min.js"></script>
+<link rel="stylesheet" type="text/css" href="scripts/elessar.css"/>
+<!-- ARRIS ADD START 37130 -->
+<script type="text/javascript" src="scripts/sjcl.js"></script>
+<script type="text/javascript" src="crypto.js"></script>
+<!-- ARRIS ADD END 37130 -->
+<script type="text/javascript" src="base.js"></script>
+<script type="text/javascript" src="load.js"></script>
+<script type="text/javascript" src="text.js"></script>
+<script type="text/javascript" src="text_en.js"></script>
+<script type="text/javascript" src="base_95x.js"></script>
+<!-- <script type="text/javascript" src="crypt.js"></script>  -->
+
+<script type="text/javascript" src="tool_diagnostics.js"></script>
+<script type="text/javascript" src="tool_troubleshoot.js"></script>
+
+<script type="text/javascript"> var doReload = "cacheVersion1";</script>
+<!-- Set LGI as default skin  -->
+<link rel="stylesheet" type="text/css" media="all" href="skins/lgi/css/global.css"/>
+<script type="text/javascript" src="skins/lgi/js/base.js"></script>
+<script type="text/javascript" src="skins/lgi/js/jniceit.js"></script>
+
+
+<link id="skin_css" rel="stylesheet" type="text/css" media="all" href=""/>
+<link rel="stylesheet" type="text/css" href="scripts/slider.css"/>
+
+
+<script type="text/javascript">
+
+    // LGI ADD START
+    var menuId = getCurMenuId();
+    if(menuId != 'ConnectionStatus')
+        checkConnection();
+    // LGI ADD END
+
+    // ARRIS ADD BEGIN Handle Error messages.
+    window.onerror = function(sMsg,sUrl,sLine){
+    	  $.logError("Error msg:"+sMsg + "   ["+sUrl+":"+sLine+"]");
+
+    	  // Make sure all unauthorized exception will be handled.
+        if (sMsg.indexOf("unauthorized") != -1){
+        	 handleError("unauthorized");
+        }
+    }
+    // ARRIS ADD END
+    check_ConType();
+
+    var skin = getSkin();
+    	$.log("Skin=" + skin);
+    if (skin){
+    	$("#skin_css").attr("href", "skins/"+skin+"/css/global.css");
+    	//$.cachedScript("skins/"+skin+"/js/base.js");
+        $.cachedScript("skins/"+skin+"/js/base.js", function success() {
+        });
+    }
+
+    var modemMode_local = getModemMode();
+
+
+    function menu() {
+        var m = [{ id:"Home", page:"home", children:[]},
+       			 { id:"ConnectedDevices", page:"device_connection", children:[]},
+       			 { id: "Modem", page:"modem_settings", children:[]},
+        		 { id:"AdvancedSettings", page:null,  children:[
+		            { id:"Wireless",  children: [
+		                { id:"WirelessSignal", page:"wifi_radio" },
+		                { id:"WirelessSecurity", page:"wifi_settings" },
+		                { id:"WirelessGuest", page:"guest_settings" },
+		                { id:"WPS", page:"wifi_wps" }
+		            ] },
+		            {id:"Security",  children: [
+		                { id:"Firewall", page:"firewall" },
+		                { id:"MACFiltering", page:"macfilter" },
+		                { id:"IPFiltering", page:"ipfilter" },
+		                { id:"PortForwarding", page:"portforwarding" },
+		                { id:"PortTriggering", page:"porttriggering" },
+		                { id:"DMZ", page:"security_dmz" }
+		            ] },
+		            { id: "DHCP", page:"dhcp_setting", children:[]},
+		            { id: "uPnP", page:"upnp_setting", children:[]},
+                            { id: "DDNS", page:"ddns_setting", children:[], menuHide:getIPModeDDNSStatus()},
+		            {id:"Tools",  children: [
+				{ id:"NetworkStatus", page:"device_networkstatus" },
+		                { id:"Ping", page:"tool_ping" },
+		                { id:"TraceRoute", page:"tool_trace" },
+		                { id:"MTUSize", page:"tool_mtu" }
+		            ]},
+		            { id: "Lightring", page:"lightring", children:[]}
+		         ]},//END Settings
+		         { id: "Admin", page:null, children: [
+	                { id:"ChangePassword", page:"change_password" },
+	                { id:"ReloadAndReboot", page:"device_reboot" },
+	                //{ id:"RemoteAccess", page:"remote_access" },
+	                { id:"Info", page:"device_status"},
+			// LGI ADD START
+			{ id:"Troubleshoot", page:"tool_troubleshoot", display:"wizard", noAuth:true, menuHide:true},
+			{ id:"ConnectionStatus", page:"connection_troubleshoot", display:"blank", noAuth:true, menuHide:true}
+			// LGI ADD END
+	            ]}
+		      ];
+        var m1 = [{ id:"Home", page:"home", children:[]},
+                         { id: "Modem", page:"modem_settings", children:[]},
+                         { id:"AdvancedSettings", page:null,  children:[
+                            {id:"Tools",  children: [
+                                { id:"NetworkStatus", page:"device_networkstatus" }
+                            ]},
+                            { id: "Lightring", page:"lightring", children:[]}
+                         ]},//END Settings
+                         { id: "Admin", page:null, children: [
+                                { id:"ChangePassword", page:"change_password" },
+                                { id:"ReloadAndReboot", page:"device_reboot" },
+                                { id:"Info", page:"device_status"},
+                                { id:"Troubleshoot", page:"tool_troubleshoot", display:"wizard", noAuth:true, menuHide:true}
+                         ]}
+                      ];
+        if (getDNSEnabled() == 1)
+        {
+            m[3] = { id:"AdvancedSettings", page:null,  children:[
+                            { id:"Wireless",  children: [
+                                { id:"WirelessSignal", page:"wifi_radio" },
+                                { id:"WirelessSecurity", page:"wifi_settings" },
+                                { id:"WirelessGuest", page:"guest_settings" },
+                                { id:"WPS", page:"wifi_wps" }
+                            ] },
+                            {id:"Security",  children: [
+                                { id:"Firewall", page:"firewall" },
+                                { id:"MACFiltering", page:"macfilter" },
+                                { id:"IPFiltering", page:"ipfilter" },
+                                { id:"PortForwarding", page:"portforwarding" },
+                                { id:"PortTriggering", page:"porttriggering" },
+                                { id:"DMZ", page:"security_dmz" }
+                            ] },
+                            { id: "DHCP", page:"dhcp_setting", children:[]},
+                            { id: "DNS", page:"dns_setting", children:[]},
+                            { id: "uPnP", page:"upnp_setting", children:[]},
+                            { id: "DDNS", page:"ddns_setting", children:[]},
+                            {id:"Tools",  children: [
+                                { id:"NetworkStatus", page:"device_networkstatus" },
+                                { id:"Ping", page:"tool_ping" },
+                                { id:"TraceRoute", page:"tool_trace" },
+                                { id:"MTUSize", page:"tool_mtu" }
+                            ]},
+                            { id: "Lightring", page:"lightring", children:[]}
+                         ]};
+        }
+        if (getCSRLoginMode() == 1)
+        {
+            // don't need to show change password page for csr login
+            m[4] = { id: "Admin", page:null, children: [
+                { id:"ReloadAndReboot", page:"device_reboot" },
+                //{ id:"RemoteAccess", page:"remote_access" },
+                { id:"Info", page:"device_status"},
+                { id:"Troubleshoot", page:"tool_troubleshoot", display:"wizard", noAuth:true, menuHide:true}
+                ]};
+        }
+
+    if ((isLGI()) && (modemMode_local == 0))
+        return m1;
+    else
+        return m;
+    }
+
+//    var pageBand = 1;
+    function complete() {
+    	try{
+	    	if (typeof getCurMenu != "undefined" ){
+	        	var curm = getCurMenu();
+	        	if (curm && curm["display"]=="wizard" && (((!isLoggedIn())&&curm["noAuth"]) || isLoggedIn()) ){
+	        		$("body").addClass("login_background");
+	        		$("body").empty();
+                                if(isVM() || isZiggo())
+                                $("body").addClass("troubleshoot_background");
+	        		wz_dialog('wizard_dialog', {pageId:curm.page, noTitleBar:true} );
+	        		return;
+	        	}
+			// LGI ADD START
+			else if (curm && curm["display"]=="blank" && (((!isLoggedIn())&&curm["noAuth"]) || isLoggedIn()) ){
+				$("body").empty();
+				wz_dialog('wizard_dialog', {pageId:curm.page, noTitleBar:true} );
+				$('.ui-widget-overlay').removeClass('overlay').css('background','white');
+                                if(isVM() || isZiggo())
+                                $("body").addClass("troubleshoot_background");
+				$(".ui-widget.ui-widget-content").css("border","none");
+				$(".wz_dialog").css("padding","0");
+				return;
+			}
+			// LGI ADD END
+		}
+        base = getURLArgs() || getDefaultPage();
+        var preloaded = typeof loadData != "undefined";
+        if (!isLoggedIn() || preloaded) {
+            if (preloaded)
+                loadData();
+            render();
+            return;
+        }
+
+        var modbase = base;
+        if (modbase.endsWith("1")) {
+            is5GPageURL = true;
+            modbase = modbase.substr(0,modbase.length-1);
+        }
+
+        if(!curm) {
+            modbase = "home";
+            base = "home";
+        }
+
+        $.post( "php/" + modbase + "_data.php" )
+            .done(function( data ) {
+                if (data == 0)
+                    logoutAndReload();
+                $( "body" ).append(data);
+                $.getScript(modbase + "_data.js", function success() {
+                    $.getScript(modbase + ".js", function success() {
+                        try{
+                            loadData();
+                            $.log("ACCESSED:");
+                            listAccessed();
+                            render();
+                        }catch(e){
+                            handleError(e); // ARRIS MOD. PROD00198245
+                        }
+                    });
+                });
+            });
+       }catch(e){
+           handleError(e); // ARRIS MOD. PROD00198245
+       }
+     }
+
+	function doCompletion(){
+        continueSession();
+        complete();
+	}
+
+    $(function () {
+    	var langCode = getLangCode();
+	// LGI ADD START
+	var language = getLocalStorage('selectedLanguage');
+	if(getCurMenuId() == 'ConnectionStatus' && typeof language !== 'undefined')
+		langCode = getCodefromLang(language);
+	// LGI ADD END
+    	if (langCode){
+    		$.cachedScript("text_"+langCode+".js", null, {async:false});
+    	}
+    	var timerCount = 0;
+    	function getElapsedTimeStr(cnt){
+    		var s = "";
+    		for (var i=0; i<=cnt%3; i++){ s+=".";}
+    		return s;
+    	}
+		function showDialog(){
+			$("#loading-dialog").css("display","block");
+	        	$("#loading-text").text(xlate("Pleasewait"));
+		}
+		var tryCounts = 0; var maxTryCount = 300;
+		function checkInitialStatus(){
+//			if ((tryCounts++)>=maxTryCount){//Try less than 300 times
+//				$.logError("Tried out of "+tryCounts+" times, do next.");
+//				doCompletion();
+//				return;
+//			}
+//	    	var oid = MibObjects.ApplyAllSettings.oid+".0";
+//	    	var url = hooks.buildGetURL([oid]);
+//			$.ajax({
+//				url: url,
+//				timeout:1000,
+//				cache:false,// UNIHAN ADD, PD216568
+//				success: function (result) {
+//	                result = decrypt(result);
+//	                $.log("get result " + result);
+//	                try {
+//	                    var rrv = JSON.parse(result);
+//	                    if (rrv && rrv[oid] && rrv[oid].asInt()==1){
+//
+//			        		showDialog();
+//			        		doCompletion();
+//			        		return;
+//				        }
+//		            } catch (e) {
+//		            	$.logError("JSON.parse:"+result+" error="+e);
+//		            }
+//
+//		            showDialog();
+//		            jQuery.event.trigger( "ajaxStop" );
+//				    $.log("ApplyAllSettings returns "+result+", continue to check the status..");
+//		            setTimeout(checkInitialStatus, 5000);
+//	            },
+//	            error:function (jqXHR, textStatus, errorThrown) {
+//	            	$.logError("textStatus="+textStatus+" errorThrown="+errorThrown);
+//	                showDialog();
+//	                jQuery.event.trigger( "ajaxStop" );
+//	                setTimeout(checkInitialStatus, 5000);
+//	            },
+//	            async:true,
+//	            dataType:"text"}
+//	        );
+		doCompletion();
+		return;
+		}
+		checkInitialStatus();
+
+//                if(!((first_install_status() != 1) || (!isLoggedIn())))
+//                   buildShell();
+//		doCompletion();
+    });
+
+$(function () {
+    if (customerId() == 8){
+        $(document).attr('title', CustNameVM);
+    } else if (customerId() == 41){
+        $(document).attr('title', CustNameVMIE);
+    } else if (customerId() == 6){
+        $(document).attr('title', CustNameVTR);
+    } else if (customerId() == 20){
+        $(document).attr('title', CustNameZiggo);
+    } else if (customerId() == 44){
+        $(document).attr('title', CustNameTMAustria);
+    } else {
+        $(document).attr('title', CustNameLGI);
+    }
+});
+
+
+
+
+</script>
+
+<title></title>
+</head>
+<body>
+<!--
+<div id="loading-dialog" ><div id="loading-icon"></div><div id="loading-text" ></div></div>
+-->
+
+</body>
+</html>
